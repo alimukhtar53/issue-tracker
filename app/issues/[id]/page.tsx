@@ -1,8 +1,7 @@
-import prisma from "@/prisma/client";
-import { notFound } from "next/navigation";
-import React from "react";
-import { Card, Flex, Heading, Text } from "@radix-ui/themes";
 import Badge from "@/app/components/Badge";
+import prisma from "@/prisma/client";
+import { Card, Flex, Heading, Text } from "@radix-ui/themes";
+import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 
 interface Props {
@@ -13,8 +12,9 @@ const IssueDetailPage = async ({ params }: Props) => {
   const issue = await prisma.issue.findUnique({
     where: { id: parseInt(params.id) },
   });
-  console.log(issue);
+
   if (!issue) notFound();
+
   return (
     <div>
       <Heading>{issue?.title}</Heading>
