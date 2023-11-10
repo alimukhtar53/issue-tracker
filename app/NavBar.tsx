@@ -11,7 +11,6 @@ const NavBar = () => {
     { label: "Dashboard", href: "/" },
     { label: "Issues", href: "/issues" },
   ];
-  console.log(currentPath);
   return (
     <nav className="flex items-center justify-between border-b mb-5 p-6">
       <Link href="/">

@@ -46,7 +46,6 @@ const IssueForm = ({ issue, isEdit }: Props) => {
 
   const onSubmit = handleSubmit(async (data) => {
     try {
-      console.log(data);
       setIsSubmitting(true);
       const requestData = issue ? { ...data, status: selectedStatus } : data;
       if (issue) axios.patch(`/api/issues/${issue.id}`, requestData);
@@ -55,7 +54,6 @@ const IssueForm = ({ issue, isEdit }: Props) => {
       router.refresh();
     } catch (error) {
       setIsSubmitting(false);
-      console.log(error);
       setError("An unexpected error occurred.");
     }
   });
