@@ -1,10 +1,12 @@
 "use client";
+import { Select } from "@/app/components";
 import ErrorMessage from "@/app/components/ErrorMessage";
+import { statusOptions } from "@/app/components/Select";
 import Spinner from "@/app/components/Spinner";
 import { issueSchema } from "@/app/validationSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Issue } from "@prisma/client";
-import { Button, Callout, TextField } from "@radix-ui/themes";
+import { Button, Callout, Flex, TextField } from "@radix-ui/themes";
 import axios from "axios";
 import "easymde/dist/easymde.min.css";
 import { useRouter } from "next/navigation";
@@ -15,7 +17,12 @@ import { z } from "zod";
 
 type IssueFormData = z.infer<typeof issueSchema>;
 
-const IssueForm = ({ issue }: { issue?: Issue }) => {
+interface Props {
+  issue?: Issue;
+  isEdit: boolean;
+}
+
+const IssueForm = ({ issue, isEdit }: Props) => {
   const router = useRouter();
   const {
     register,
@@ -28,11 +35,24 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const defaultStatus =
+    statusOptions.find((option) => option.value === issue?.status)?.value ||
+    statusOptions[0].value;
+  const [selectedStatus, setSelectedStatus] = useState<string>(defaultStatus);
+
+  const handleStatusChange = (value: string) => {
+    setSelectedStatus(value);
+  };
+
   const onSubmit = handleSubmit(async (data) => {
     try {
+      console.log(data);
       setIsSubmitting(true);
-      await axios.post("/api/issues", data);
+      const requestData = issue ? { ...data, status: selectedStatus } : data;
+      if (issue) axios.patch(`/api/issues/${issue.id}`, requestData);
+      else await axios.post("/api/issues", data);
       router.push("/issues");
+      router.refresh();
     } catch (error) {
       setIsSubmitting(false);
       console.log(error);
@@ -47,13 +67,21 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
         </Callout.Root>
       )}
       <form className="space-y-3" onSubmit={onSubmit}>
-        <TextField.Root>
-          <TextField.Input
-            defaultValue={issue?.title}
-            placeholder="Title"
-            {...register("title")}
-          />
-        </TextField.Root>
+        <Flex justify={"between"} gap={"4"}>
+          <TextField.Root className="w-full">
+            <TextField.Input
+              defaultValue={issue?.title}
+              placeholder="Title"
+              {...register("title")}
+            />
+          </TextField.Root>
+          {isEdit && (
+            <Select
+              selectedStatus={selectedStatus}
+              onChange={handleStatusChange}
+            />
+          )}
+        </Flex>
         <ErrorMessage>{errors.title?.message}</ErrorMessage>
         <Controller
           name="description"
@@ -65,7 +93,8 @@ const IssueForm = ({ issue }: { issue?: Issue }) => {
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
         <Button disabled={isSubmitting}>
-          Submit New Issue {isSubmitting && <Spinner />}
+          {issue ? "Update Issue" : "Submit New Issue"}{" "}
+          {isSubmitting && <Spinner />}
         </Button>
       </form>
     </div>
